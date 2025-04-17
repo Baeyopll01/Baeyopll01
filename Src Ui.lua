@@ -4579,15 +4579,6 @@ function Library:Window(p)
 				})
 				open:Play()
 			end
-
-			if not firsttime then
-				firsttime = true
-				Tabs:Notify({
-					Title = 'Dummy UI',
-					Desc = 'Press the <font color="#FF77A5" size="14">('..tostring(Keybind):gsub("Enum.KeyCode.", "")..')</font> button to hide and show the UI',
-					Time = 10
-				})
-			end
 		end
 
 		ChSize_1.MouseButton1Click:Connect(closeui)
