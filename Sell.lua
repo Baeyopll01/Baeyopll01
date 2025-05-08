@@ -1089,4 +1089,4 @@ function Library.Load(o)
 	return tab
 end
 
-return
+return Library
