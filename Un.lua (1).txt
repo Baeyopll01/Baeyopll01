@@ -1,0 +1,143 @@
+
+repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer and game.Players.LocalPlayer.Character and game.Players.LocalPlayer:FindFirstChild("PlayerGui")
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", true))()
+
+if not game:IsLoaded() then game.Loaded:Wait(5) end
+
+local Service = {}
+setmetatable(Service, {
+    __index = function(_, key)
+        local success, result = pcall(function()
+            return cloneref(game:GetService(tostring(key)))
+        end)
+        return success and result or game:GetService(tostring(key))
+    end
+})
+
+local Players = Service.Players
+local LocalPlayer = Players.LocalPlayer
+local Workspace = Service.Workspace
+local LocalUserId = LocalPlayer.UserId
+local HttpService = Service.HttpService
+local ReplicatedStorage = Service.ReplicatedStorage
+local RunService = Service.RunService
+local VirtualUser = Service.VirtualUser
+local VirtualInputManager = Service.VirtualInputManager
+local UserInputService = Service.UserInputService
+local TeleportService = Service.TeleportService
+local GuiService = Service.GuiService
+local TweenService = Service.TweenService
+
+function ImportantFolder()
+    for i,v in next, workspace.Farm:GetChildren() do
+        if v:IsA("Folder") then
+            for i2,v2 in next, v:GetChildren() do
+                if v2:IsA("Folder") and v2.Name == "Important" then
+                    local data = v2:FindFirstChild("Data")
+                    if data and data:FindFirstChild("Owner") and data.Owner.Value == game.Players.LocalPlayer.Name then
+                        return v2
+                    end
+                end
+            end
+        end
+    end 
+    return nil
+end
+
+local PlaceID = game.PlaceId
+local AllIDs = {}
+local foundAnything = ""
+local actualHour = os.date("!*t").hour
+local Deleted = false
+local File = pcall(function()
+    AllIDs = game:GetService('HttpService'):JSONDecode(readfile("NotSameServers.json"))
+end)
+if not File then
+    table.insert(AllIDs, actualHour)
+    writefile("NotSameServers.json", game:GetService('HttpService'):JSONEncode(AllIDs))
+end
+function TPReturner()
+    local Site;
+    if foundAnything == "" then
+        Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100'))
+    else
+        Site = game.HttpService:JSONDecode(game:HttpGet('https://games.roblox.com/v1/games/' .. PlaceID .. '/servers/Public?sortOrder=Asc&limit=100&cursor=' .. foundAnything))
+    end
+    local ID = ""
+    if Site.nextPageCursor and Site.nextPageCursor ~= "null" and Site.nextPageCursor ~= nil then
+        foundAnything = Site.nextPageCursor
+    end
+    local num = 0;
+    for i,v in pairs(Site.data) do
+        local Possible = true
+        ID = tostring(v.id)
+        if tonumber(v.maxPlayers) > tonumber(v.playing) then
+            for _,Existing in pairs(AllIDs) do
+                if num ~= 0 then
+                    if ID == tostring(Existing) then
+                        Possible = false
+                    end
+                else
+                    if tonumber(actualHour) ~= tonumber(Existing) then
+                        local delFile = pcall(function()
+                            delfile("NotSameServers.json")
+                            AllIDs = {}
+                            table.insert(AllIDs, actualHour)
+                        end)
+                    end
+                end
+                num = num + 1
+            end
+            if Possible == true then
+                table.insert(AllIDs, ID)
+                wait()
+                pcall(function()
+                    writefile("NotSameServers.json", game:GetService('HttpService'):JSONEncode(AllIDs))
+                    wait()
+                    game:GetService("TeleportService"):TeleportToPlaceInstance(PlaceID, ID, game.Players.LocalPlayer)
+                end)
+                wait(4)
+            end
+        end
+    end
+end
+
+function Teleport()
+    while wait() do
+        pcall(function()
+            TPReturner()
+            if foundAnything ~= "" then
+                TPReturner()
+            end
+        end)
+    end
+end
+
+task.spawn(function()
+    while task.wait() do 
+        local IF = ImportantFolder()
+        for i,v in next, IF:GetChildren() do 
+            if v:IsA("Folder") and v.Name == "Objects_Physical" then
+                for i1,v1 in next, v:GetChildren() do 
+                    if v1:IsA("Model") then 
+                        for i2,v2 in next, v1:GetChildren() do 
+                            if v2:IsA("Folder") then 
+                                for i3,v3 in next, v2:GetChildren() do 
+                                    if v3:IsA("BoxHandleAdornment") then 
+                                        if string.find(v3.BillboardGui.TextLabel.Text, Config["Pet Name"]) then 
+                                            print("🟢")
+                                        else
+                                            wait(4)
+                                            Teleport()
+                                        end
+                                    end 
+                                end 
+                            end 
+                        end 
+                    end 
+                end 
+            end 
+        end 
+    end 
+end)
